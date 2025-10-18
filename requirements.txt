@@ -1,3 +1,6 @@
 streamlit
 dotenv
 supabase
+uuid
+rich
+watchdog

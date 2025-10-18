@@ -1,11 +1,17 @@
 from datetime import datetime
-from .supabase_client import get_client
+from typing import Optional
 
+from .supabase_client import get_client
+from supabase import Client as SupabaseClient
+
+from rich import print
 
 class MetadataStore:
-    def __init__(self, client=None):
+    def __init__(self, table_name: str , client: Optional[SupabaseClient] = None):
         self.client = client or get_client()
-        # self.ensure_table_exists() # Assume table exists for simplicity
+        self.table_name = table_name or "image_metadata"
+        # Assume table exists for simplicity while using anon key
+        # self.ensure_table_exists()
         
     def ensure_table_exists(self):
         """Ensure the metadata table exists"""
@@ -21,17 +27,20 @@ class MetadataStore:
             );
             """).execute()
 
-    def add_metadata(self, filename: str, url: str, source: str = "unknown"):
+    def add_metadata(self, filename: str, url: str, width: int, height: int, labels: str, region: str) -> None:
         """Insert metadata for uploaded image"""
         data = {
-            "filename": filename,
-            "url": url,
+            "_id": filename,
+            "image_url": url,
+            "image_width": width,
+            "image_height": height,
+            "image_ext": url.split('.')[-1],  # Optional: extract from URL if needed
             "uploaded_at": datetime.utcnow().isoformat(),
-            "source": source,
+            "image_source": "streamlit_public_app",
+            "upload_region": region, 
+            "labels": labels,
         }
-        self.client.table("image_metadata").insert(data).execute()
-
-    def list_metadata(self):
-        """Fetch all metadata records"""
-        result = self.client.table("image_metadata").select("*").order("uploaded_at", desc=True).execute()
-        return result.data or []
+        # Execute insert Query
+        self.client.table(self.table_name).insert(data).execute()
+        print(f"[bold green]Success:[/bold green] Metadata for {filename} added to {self.table_name}")
+        return True
