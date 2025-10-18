@@ -1,5 +1,6 @@
 import io
 import re
+import os
 from datetime import datetime
 from typing import Optional
 
@@ -13,7 +14,7 @@ from rich import print
 class ImageStore:
     def __init__(self, bucket_name: str, client: Optional[SupabaseClient] = None):
         self.client = client or get_client()
-        self.bucket_name = bucket_name or "food-images"
+        self.bucket_name = bucket_name or os.getenv("SUPABASE_STORAGE_BUCKET", "food-images")
         # Assume bucket exists for simplicity while using anon key
         # self._ensure_bucket_exists()
 
@@ -34,6 +35,7 @@ class ImageStore:
 
         # Save to Supabase Storage
         try:
+            # Upload the image
             resp = self.client.storage.from_(self.bucket_name).upload(
                 path=path,
                 file=img_bytes,
@@ -43,10 +45,33 @@ class ImageStore:
                     "upsert": False
                 }
             )
+            # Get public URL
             public_url = self.client.storage.from_(self.bucket_name).get_public_url(path)
             print(f"[bold green]Success:[/bold green] Image uploaded to {public_url}")
         except Exception as e:
+            print(f"[bold red]Error:[/bold red] Failed to upload image: {e}")
             raise RuntimeError(f"Failed to upload image: {e}")
         
         return public_url
 
+    def delete_image(self, filename: str, region: str) -> None:
+        """Delete an image from Supabase Storage"""
+        path = f"{region}/{filename}.png"
+        try:
+            self.client.storage.from_(self.bucket_name).remove([path])
+            print(f"[bold green]Success:[/bold green] Image {filename} deleted from storage.")
+        except Exception as e:
+            print(f"[bold red]Error:[/bold red] Failed to delete image {filename}: {e}")
+            raise RuntimeError(f"Failed to delete image: {e}")
+        return
+    
+    def get_image_url(self, filename: str, region: str) -> str:
+        """Get the public URL of an image stored in Supabase Storage"""
+        path = f"{region}/{filename}.png"
+        try:
+            public_url = self.client.storage.from_(self.bucket_name).get_public_url(path)
+            return public_url
+        except Exception as e:
+            print(f"[bold red]Error:[/bold red] Failed to get image URL: {e}")
+            raise RuntimeError(f"Failed to get image URL: {e}")
+        return ""
