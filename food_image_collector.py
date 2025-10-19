@@ -90,17 +90,17 @@ def upload_image_with_metadata(
 
 
 # === Streamlit UI ===
-st.title("🍕 Food Image Collector for Machine Learning")
-st.write("Upload food images along with metadata to build a dataset for ML models.")
+st.title("Fit Freak Food Image Collector 🍕")
+st.write("Upload a photo of what you eat, along with some metadata to build a massive food dataset that powers FitFreak's Food Engine! 🚀")
 
-st.subheader("📤 Upload your food image")
+st.subheader("Upload your food image 📤")
 uploaded_file: UploadedFile = st.file_uploader(
     label="Upload a food image",
     type=["jpg", "jpeg", "png"]
 )
 
 if uploaded_file is not None:
-    st.markdown("Preview of Uploaded Image:")
+    st.markdown("Preview of Uploaded Image 🖼:")
     uploaded_image: Image.Image = display_image(
         uploaded_file,
         caption=str(uploaded_file.name.strip()) if uploaded_file else "No image uploaded yet.",
@@ -110,9 +110,9 @@ if uploaded_file is not None:
     unique_image_id = create_unique_filename()
     current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
-    st.subheader("📝 Please provide image metadata fields")
-    labels = st.text_input("Enter labels for this image (e.g., 'pizza', 'salad', etc.)", "food_image")
-    region = st.text_input("Enter region (e.g., 'US', 'EU', etc.)", "US")
+    st.subheader("Please provide some additional information about the image 📝")
+    labels = st.text_input("What food is in the image? (e.g., 'pizza', 'salad', etc.)")
+    region = st.text_input("Where is this food from? (e.g., 'US', 'EU', etc.)", "US")
 
     if st.button("📤 Upload"):
         with st.spinner("Uploading image..."):
@@ -131,9 +131,41 @@ if uploaded_file is not None:
                 logger.error(f"[red]Upload failed for {unique_image_id}: {e}[/red]")
 
 else:
-    st.markdown("No image uploaded yet. Here's a sample image:")
-    image_url = "https://diurvyoemqqvltfqpbmc.supabase.co/storage/v1/object/public/public_images/food_image_sample.jpg"
-    display_image(image_url, caption="Default Sample Image", width='stretch')
+    # When no image is uploaded
+    st.markdown("### No image uploaded yet.😶")
 
+# UI: FAQ Section
+st.write("## FAQ")
+with st.expander("What happens to my image?"):
+    st.write(
+        """
+    When you click "upload image", your image gets stored on FitFreak servers\
+    Here's a pretty picture which describes it in more detail:
+    """
+    )
+    st.image("https://diurvyoemqqvltfqpbmc.supabase.co/storage/v1/object/public/public_images/image-uploading-workflow-with-background.png", caption="Image Uploading Workflow", width="content")
+    st.write(
+        "Later on, images in the database will be used to train a computer \
+            vision model to power FitFreak Food Engine."
+    )
+with st.expander("Why do we need images of food?"):
+    st.write(
+        """
+    Machine learning models learn by looking at many different examples \
+        of things.\n
+    Food included.\n
+    Eventually, FitFreak wants to be an app you can use to *take a photo of \
+        food and learn about it*.\n
+    To do so, we'll need many different examples of foods to build a \
+        computer vision model capable of identifying almost anything you can eat.\n
+    And the more images of food you upload, the better the models will get.
+    Your contributions will help make FitFreak better for everyone! 🙏\n
+    """
+    )
+# UI: Source Code Link
+st.markdown(
+    "View the source code for this page on \
+        [GitHub](https://github.com/erilycus/food-image-collector)."
+)
 st.markdown("---")
-st.markdown("Developed by Dev Mukherjee. Powered by Supabase and Streamlit.")
+
